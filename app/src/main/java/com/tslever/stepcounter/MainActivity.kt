@@ -9,68 +9,84 @@ import android.hardware.SensorManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.TextView
+import java.io.File
+import java.io.IOException
 
 class MainActivity : AppCompatActivity(), SensorEventListener {
 
+    private val fileName: String = "number_of_steps.txt"
+    private var numberOfSteps: Float = -1f
+    private var sensor: Sensor? = null
     private lateinit var sensorManager: SensorManager
-    private var stepCounterSensor: Sensor? = null
-    private var initialStepCount: Float = -1f
-    private lateinit var stepCountTextView: TextView
+    private lateinit var textViewOfNumberOfSteps: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        if (checkSelfPermission(android.Manifest.permission.ACTIVITY_RECOGNITION)
-            != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(arrayOf(android.Manifest.permission.ACTIVITY_RECOGNITION), 100)
-        }
-
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        stepCountTextView = findViewById(R.id.stepCountTextView)
-
-        // Get the sensor manager
-        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        // Try to get the step counter sensor
-        stepCounterSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-
-        if (stepCounterSensor == null) {
-            // Device does not have a step counter sensor
-            stepCountTextView.text = "Step Counter not available."
-        } else {
-            stepCountTextView.text = "Steps: 0"
+        if (checkSelfPermission(android.Manifest.permission.ACTIVITY_RECOGNITION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(android.Manifest.permission.ACTIVITY_RECOGNITION), 100)
         }
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        sensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+        textViewOfNumberOfSteps = findViewById(R.id.textViewOfNumberOfSteps)
     }
 
     override fun onResume() {
         super.onResume()
-        // Register the sensor listener if available
-        stepCounterSensor?.also {
+        sensor?.also {
             sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
         }
+        numberOfSteps = loadNumberOfSteps() - 1
+        textViewOfNumberOfSteps.text = "number of steps: ${numberOfSteps}"
     }
 
     override fun onPause() {
         super.onPause()
-        // Unregister the sensor listener to save battery
         sensorManager.unregisterListener(this)
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
         if (event?.sensor?.type == Sensor.TYPE_STEP_COUNTER) {
-            val totalSteps = event.values[0]
-
-            // The first reading you get is the total steps since the last reboot.
-            // Store this initial value to calculate steps taken since app start.
-            if (initialStepCount < 0) {
-                initialStepCount = totalSteps
-            }
-
-            val stepsSinceStart = totalSteps - initialStepCount
-            stepCountTextView.text = "Steps: ${stepsSinceStart.toInt()}"
+            numberOfSteps += 1
+            saveNumberOfSteps()
+            textViewOfNumberOfSteps.text = "number of steps: ${numberOfSteps.toInt()}"
         }
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-        // Not used in this example
+
+    }
+
+    private fun loadNumberOfSteps(): Float {
+
+        val file = File(filesDir, fileName)
+
+        if (!file.exists()) {
+            try {
+                file.writeText("0")
+            } catch (e: IOException) {
+                val numberOfStepsLoaded = -2f
+                return numberOfStepsLoaded
+            }
+        }
+
+        return try {
+            openFileInput(fileName).use { inputStream ->
+                val stringRepresentingNumberOfSteps = inputStream.bufferedReader().readLine()
+                stringRepresentingNumberOfSteps?.toFloatOrNull() ?: -1f
+            }
+        } catch (e: IOException) {
+            -2f
+        }
+    }
+
+    private fun saveNumberOfSteps() {
+        try {
+            openFileOutput(fileName, Context.MODE_PRIVATE).use { outputStream ->
+                outputStream.write(numberOfSteps.toString().toByteArray())
+            }
+        } catch (e: IOException) {
+            // On write error, do nothing
+        }
     }
 }
