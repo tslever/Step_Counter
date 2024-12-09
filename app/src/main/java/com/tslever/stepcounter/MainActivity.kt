@@ -1,6 +1,7 @@
 package com.tslever.stepcounter
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -17,6 +18,11 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var stepCountTextView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        if (checkSelfPermission(android.Manifest.permission.ACTIVITY_RECOGNITION)
+            != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(android.Manifest.permission.ACTIVITY_RECOGNITION), 100)
+        }
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
