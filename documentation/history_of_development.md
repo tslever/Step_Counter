@@ -12,6 +12,7 @@
 
 6.  I began debugging the Empty Activity, which yielded the following errors.
 
+    ```
     2 issues were found when checking AAR metadata:
 
     1.  Dependency 'androidx.core:core:1.15.0' requires libraries and applications that
@@ -44,6 +45,7 @@
         minSdk (which determines which devices the app can be installed
         on).
     Update minCompileSdk in modules with dependencies that require a higher minCompileSdk.
+    ```
 
 7.  I navigated to File, Project Structure..., Modules, and Compile Sdk Version. I changed the Compile Sdk Version to 35.
 
@@ -63,3 +65,43 @@
     ```
 
 10. After adding the contents of `Tom_Levers_Arden_GitHub_Key.pub` to GitHub, I ran `git push -u origin main`.
+
+11. In Android Studio, I right clicked on `app/res` and created a new Android Resource Directory named layout with resource type layout.
+
+12. I right clicked directory layout and created a new resource file named `activity_main` with root element `LinearLayout`.
+
+13. I replaced the contents of `activity_main.xml` with the following.
+
+    ```
+    <?xml version="1.0" encoding="utf-8"?>
+    <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".MainActivity">
+
+        <TextView
+            android:id="@+id/stepCountTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Steps: 0"
+            android:textSize="24sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    ```
+
+14. I noticed the following error.
+
+    ```
+    Class referenced in the layout file, androidx. constraintlayout. widget. ConstraintLayout, was not found in the project or the libraries More... (Ctrl+F1) 
+    Inspection info: If a class is referenced in the manifest or in a layout file, it must also exist in the project (or in one of the libraries included by the project. This check helps uncover typos in registration names, or attempts to rename or move classes without updating the XML references properly.  Issue id: MissingClass  More info: https:// developer. android. com/ guide/ topics/ manifest/ manifest-intro. html  Vendor: Android Open Source Project Contact: https:// groups. google. com/ g/ lint-dev Feedback: https:// issuetracker. google. com/ issues/ new?component=192708 
+    Cannot resolve class androidx. constraintlayout. widget. ConstraintLayout 
+    Inspection info: This inspection highlights unresolvable XML tag references in Android resource files
+    ```
+
+15. I clicked on the button `Add dependency on androidx.constraintlayout:constraintlayout`.
